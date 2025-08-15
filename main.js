@@ -10,13 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // プレイ画面要素
     const timerDisplay = document.getElementById('timer');
     const comboDisplay = document.getElementById('combo');
-    const questionArea = document.getElementById('question-area'); // 追加
+    const questionArea = document.getElementById('question-area');
     const questionWordKana = document.getElementById('question-word-kana');
     const questionWordRoman = document.getElementById('question-word-roman');
     const inputDisplayCorrect = document.getElementById('input-display-correct');
     const inputDisplayRemaining = document.getElementById('input-display-remaining');
     const questionCounter = document.getElementById('current-question-num');
-    const effectContainer = document.getElementById('effect-container'); // 追加
+    const effectContainer = document.getElementById('effect-container');
 
     // 結果画面要素
     const resultTime = document.getElementById('result-time');
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bestTimeLabel = document.getElementById('best-time-label');
     const bestTimeUpdateMessage = document.getElementById('best-time-update-message');
 
-    // 追加: 効果音要素
+    // 効果音要素
     const correctSound = document.getElementById('correct-sound');
     const fanfareSound = document.getElementById('fanfare-sound');
     
@@ -68,32 +68,25 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('keydown', handleKeydown);
     }
     
-    // --- 画面遷移 ---
     function switchScreen(screen) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         screen.classList.add('active');
     }
 
-    // --- ゲーム開始 ---
     function startGame() {
         const selectedTheme = themeSelect.value;
         const themeData = wordsData.themes.find(t => t.theme === selectedTheme);
-        
         if (!themeData) return;
-
         questions = [...themeData.items].sort(() => 0.5 - Math.random()).slice(0, 10);
-        
         currentQuestionIndex = 0;
         runtimeState = {
             combo: 0, maxCombo: 0, mistakes: 0, startTime: Date.now(), timerInterval: setInterval(updateTimer, 10), inputRaw: "",
         };
-
         switchScreen(playScreen);
         showNextQuestion();
         updateStats();
     }
 
-    // --- 問題表示 ---
     function showNextQuestion() {
         if (currentQuestionIndex >= questions.length) {
             endGame();
@@ -106,89 +99,95 @@ document.addEventListener('DOMContentLoaded', () => {
         questionWordRoman.textContent = kanaToRoman(question);
         updateInputDisplay();
     }
-
-    // --- 入力処理 ---
+    
+    // --- 変更: 入力処理 ---
     function handleKeydown(e) {
         if (playScreen.classList.contains('active')) {
             e.preventDefault();
-            if (e.key.match(/^[a-zA-Z]$/)) {
+            const targetRoman = kanaToRoman(questionWordKana.textContent);
+
+            if (e.key.match(/^[a-zA-Z-]$/)) {
                 runtimeState.inputRaw += e.key.toLowerCase();
             } else if (e.key === 'Backspace') {
                 runtimeState.inputRaw = runtimeState.inputRaw.slice(0, -1);
             } else if (e.key === 'Enter') {
-                checkAnswer();
+                checkAnswer(true); // Enterキーによる判定であることを示すフラグを渡す
                 return;
             }
+
+            // --- ここから修正 ---
+            // 1文字入力するごとに、間違いがないかチェックする
+            if (!targetRoman.startsWith(runtimeState.inputRaw)) {
+                // 間違えたので、即座に不正解処理を行う
+                handleMistake();
+                return; // ここで処理を中断
+            }
+            // --- ここまで修正 ---
+            
             updateInputDisplay();
-            if (kanaToRoman(questionWordKana.textContent) === runtimeState.inputRaw) {
-                checkAnswer();
+            
+            // 入力が完全に一致したら、自動で正解判定
+            if (targetRoman === runtimeState.inputRaw) {
+                checkAnswer(false);
             }
         }
     }
     
-    // --- 入力表示の更新 ---
     function updateInputDisplay() {
         const targetRoman = kanaToRoman(questionWordKana.textContent);
-        let correctPart = "";
-        let remainingPart = targetRoman;
-        if (targetRoman.startsWith(runtimeState.inputRaw)) {
-            correctPart = runtimeState.inputRaw;
-            remainingPart = targetRoman.substring(runtimeState.inputRaw.length);
-        }
+        let correctPart = runtimeState.inputRaw;
+        let remainingPart = targetRoman.substring(runtimeState.inputRaw.length);
+        
         inputDisplayCorrect.textContent = correctPart;
         inputDisplayRemaining.textContent = remainingPart;
     }
-    
-    // --- 正解判定 ---
-    function checkAnswer() {
+
+    // --- 変更: 正解判定 ---
+    // isEnterPressed引数を追加
+    function checkAnswer(isEnterPressed) {
         const targetRoman = kanaToRoman(questionWordKana.textContent);
+
         if (runtimeState.inputRaw === targetRoman) {
             // 正解処理
-            // 追加: 正解アニメーション
             questionWordKana.classList.add('correct-animation');
             setTimeout(() => questionWordKana.classList.remove('correct-animation'), 300);
-
-            // 追加: 正解音
             correctSound.currentTime = 0;
             correctSound.play();
-
             runtimeState.combo++;
             if (runtimeState.combo > runtimeState.maxCombo) {
-                runtimeState.maxCombo = runtimeState.combo;
+                runtimeState.maxCombo = runtimeState.maxCombo;
             }
-
-            // 追加: コンボ演出
             if ([3, 5, 10].includes(runtimeState.combo)) {
                 showComboEffect();
             }
-            
             currentQuestionIndex++;
-            setTimeout(showNextQuestion, 100); // 少し遅延させて次の問題へ
-        } else {
-            // 不正解処理
-            // 追加: 不正解アニメーション
-            questionArea.classList.add('shake-animation');
-            setTimeout(() => questionArea.classList.remove('shake-animation'), 500);
-
-            runtimeState.combo = 0;
-            runtimeState.mistakes++;
+            setTimeout(showNextQuestion, 100);
+        } else if (isEnterPressed) {
+            // Enterキーが押された時だけ、不一致を不正解とする
+            handleMistake();
         }
         updateStats();
     }
 
-    // --- ゲーム終了 ---
+    // --- 追加: 不正解処理をまとめた関数 ---
+    function handleMistake() {
+        questionArea.classList.add('shake-animation');
+        setTimeout(() => questionArea.classList.remove('shake-animation'), 500);
+        runtimeState.combo = 0;
+        runtimeState.mistakes++;
+        runtimeState.inputRaw = ""; 
+        updateInputDisplay();
+        updateStats(); // ミス数を反映するために呼び出す
+    }
+
     function endGame() {
         clearInterval(runtimeState.timerInterval);
         const elapsedTime = (Date.now() - runtimeState.startTime) / 1000;
-        
-        // 追加: ファンファーレ
         fanfareSound.currentTime = 0;
         fanfareSound.play();
-
         resultTime.textContent = `${elapsedTime.toFixed(3)}秒`;
         resultMaxCombo.textContent = `${runtimeState.maxCombo}回`;
         resultMistakes.textContent = `${runtimeState.mistakes}回`;
-
         const bestTime = getBestTime();
         if (bestTime === null || elapsedTime < bestTime) {
             saveBestTime(elapsedTime);
@@ -196,7 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             bestTimeUpdateMessage.textContent = "";
         }
-        
         switchScreen(resultScreen);
     }
     
@@ -214,7 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
         timerDisplay.textContent = `けいかじかん: ${elapsedTime.toFixed(3)}`;
     }
     
-    // --- localStorage関連 ---
     function getBestTime() {
         const time = localStorage.getItem('kenchanTypingBestTime');
         return time ? parseFloat(time) : null;
@@ -233,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 追加: コンボエフェクト表示関数 ---
     function showComboEffect() {
         for (let i = 0; i < 20; i++) {
             const sparkle = document.createElement('div');
@@ -242,12 +238,10 @@ document.addEventListener('DOMContentLoaded', () => {
             sparkle.style.left = `${Math.random() * 100}%`;
             sparkle.style.animationDelay = `${Math.random() * 0.5}s`;
             effectContainer.appendChild(sparkle);
-            
-            setTimeout(() => sparkle.remove(), 1000); // 1秒後に要素を削除
+            setTimeout(() => sparkle.remove(), 1000);
         }
     }
 
-    // --- ヘルパー関数: ひらがな -> ローマ字変換 ---
     function kanaToRoman(kana) {
         const simpleReverseMap = {};
         for (const [r, k] of Object.entries(romanMap)) {
@@ -255,9 +249,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 simpleReverseMap[k] = r;
             }
         }
+    
         let result = '';
         let tempKana = kana;
+    
         while (tempKana.length > 0) {
+            if (tempKana[0] === 'ー') {
+                result += '-';
+                tempKana = tempKana.substring(1);
+                continue;
+            }
+    
             let matched = false;
             for (let len = 2; len >= 1; len--) {
                 if (tempKana.length >= len) {
@@ -276,8 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         return result;
-    }
+    }    
 
-    // --- アプリケーション開始 ---
     init();
 });
