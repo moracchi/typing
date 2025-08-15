@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>けんちゃんタイピング</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div id="game-container">
+    <!-- 1. タイトル画面 -->
+    <section id="title-screen" class="screen active">
+      <h1 class="title">けんちゃんタイピング</h1>
+      <div class="card">
+        <p>テーマをえらんでね</p>
+        <select id="theme-select"></select>
+        <button id="start-button">スタート！</button>
+        <div class="best-time-display">
+            ベストタイム: <span id="best-time-label">--:--.---</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. プレイ画面 -->
+    <section id="play-screen" class="screen">
+      <!-- 追加: コンボエフェクト用のコンテナ -->
+      <div id="effect-container"></div>
+
+      <div class="stats-bar">
+        <div id="timer">けいかじかん: 0.000</div>
+        <div id="combo">コンボ: 0</div>
+      </div>
+      <div id="question-area" class="question-area">
+        <p id="question-word-kana">おだい</p>
+        <p id="question-word-roman"></p>
+        <div id="input-display-container">
+            <span id="input-display-correct"></span><span id="input-display-remaining"></span>
+        </div>
+      </div>
+      <div class="question-counter">
+        <span id="current-question-num">1</span> / 10
+      </div>
+    </section>
+
+    <!-- 3. 結果画面 -->
+    <section id="result-screen" class="screen">
+        <h2 class="title">けっか はっぴょう！</h2>
+        <div class="card">
+            <p>ごうけいタイム: <span id="result-time"></span></p>
+            <p>さいだいコンボ: <span id="result-max-combo"></span></p>
+            <p>ミスのかず: <span id="result-mistakes"></span></p>
+            <p id="best-time-update-message"></p>
+            <button id="back-to-title-button">タイトルにもどる</button>
+        </div>
+    </section>
+  </div>
+  
+  <!-- 追加: 効果音用のaudio要素 -->
+  <audio id="correct-sound" src="assets/correct.mp3" preload="auto"></audio>
+  <audio id="fanfare-sound" src="assets/fanfare.mp3" preload="auto"></audio>
+
+  <script src="main.js"></script>
+</body>
+</html>

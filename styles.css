@@ -1,0 +1,198 @@
+/* 基本スタイル */
+body {
+  background-color: #f0f8ff;
+  font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  color: #333;
+}
+
+#game-container {
+  width: 90%;
+  max-width: 800px;
+  text-align: center;
+}
+
+.title {
+    font-size: 2.5rem;
+    color: #007bff;
+    text-shadow: 2px 2px 4px #ccc;
+}
+
+.card {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* 画面切り替え */
+.screen {
+  display: none;
+}
+.screen.active {
+  display: block;
+}
+
+/* ボタンとセレクトボックス */
+button, select {
+  font-size: 1.2rem;
+  padding: 10px 20px;
+  border-radius: 25px;
+  border: none;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+button {
+  background-color: #ffc107;
+  color: #333;
+  font-weight: bold;
+  transition: transform 0.2s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+select {
+  width: 80%;
+  max-width: 300px;
+  padding: 10px;
+  border: 2px solid #ddd;
+}
+
+.best-time-display {
+    margin-top: 1.5rem;
+    font-size: 1rem;
+    color: #555;
+}
+
+/* プレイ画面 */
+#play-screen { /* 追加: position指定 */
+    position: relative;
+}
+
+.stats-bar {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+  font-weight: bold;
+  color: #0056b3;
+}
+
+.question-area {
+  background-color: #fff;
+  padding: 2rem 1rem;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  min-height: 250px;
+}
+
+#question-word-kana {
+  font-size: 4rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  margin: 0;
+  color: #333;
+  transition: transform 0.2s; /* 追加: アニメーションを滑らかに */
+}
+
+#question-word-roman {
+  font-size: 1.5rem;
+  color: #888;
+  margin-top: 0.5rem;
+  height: 1.5rem;
+}
+
+#input-display-container {
+    margin-top: 2rem;
+    font-size: 2.5rem;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#input-display-correct {
+  color: #28a745; /* 緑 */
+}
+
+#input-display-remaining {
+  color: #aaa; /* グレー */
+}
+
+.question-counter {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+/* 結果画面 */
+#result-screen .card p {
+    font-size: 1.5rem;
+    margin: 1rem 0;
+}
+#best-time-update-message {
+    font-weight: bold;
+    color: #e91e63;
+}
+
+/* --- ここから追加 --- */
+
+/* 演出用アニメーション */
+@keyframes pop-animation {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.correct-animation {
+  animation: pop-animation 0.3s ease-out;
+}
+
+@keyframes shake-animation {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake-animation {
+  animation: shake-animation 0.5s;
+}
+
+/* コンボ達成エフェクト */
+#effect-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* エフェクトがクリックの邪魔をしないように */
+    overflow: hidden;
+}
+
+.sparkle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #ffc107;
+    border-radius: 50%;
+    opacity: 0;
+    animation: sparkle-animation 1s ease-out;
+}
+
+@keyframes sparkle-animation {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px) scale(1.5);
+  }
+}
